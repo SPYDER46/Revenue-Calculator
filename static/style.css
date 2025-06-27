@@ -1,0 +1,15 @@
+body {
+  background-color: #f5f7fa;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.card {
+  border-radius: 12px;
+  border: none;
+}
+
+pre#output {
+  font-family: monospace;
+  white-space: pre-wrap;
+  overflow-y: auto;
+}

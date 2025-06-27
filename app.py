@@ -84,8 +84,8 @@ def selenium_generator_match_history(url, username, password, game_filter, otp=N
             yield "OTP required but not provided. Please enter OTP in the form.\n"
             driver.quit()
             return
-
-    yield "OTP verified, continuing to match history...\n"
+        
+        yield "OTP verified, continuing to match history...\n"    
 
     base_url = get_base_url(url)
     driver.get(base_url + '/match_history')

@@ -1,71 +1,122 @@
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('revenueForm');
-  const gameFilter = document.getElementById('game_filter');
-  const pageType = document.getElementById('page_type');
+  const loginBtn = document.getElementById('loginBtn');
+  const calculateBtn = document.getElementById('calculateBtn');
+  const stopBtn = document.getElementById('stopBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  const otpSection = document.getElementById('otpSection');
   const output = document.getElementById('output');
-  const stopBtn = document.getElementById('stopBtn'); 
-   const clearBtn = document.getElementById('clearBtn');
 
-  let controller = null; 
+  let controller = null;  // For aborting fetch
+  let reading = false;
 
-  clearBtn.disabled = false;
+  // Helper: append text to output pre with auto scroll
+  function appendOutput(text) {
+    output.textContent += text;
+    output.scrollTop = output.scrollHeight;
+  }
 
-  form.addEventListener('submit', async function (e) {
-    e.preventDefault();
-    clearBtn.disabled = true;
-    output.textContent = 'Calculating...\n';
+  // Reset UI state
+  function resetUI() {
+    otpSection.style.display = 'none';
+    calculateBtn.disabled = true;
+    loginBtn.disabled = false;
+    stopBtn.disabled = true;
+    output.textContent = '';
+    reading = false;
+  }
 
-    controller = new AbortController();
+  resetUI();
+
+  // Login button click
+  loginBtn.addEventListener('click', async () => {
+    output.textContent = 'Checking login...\n';
+    loginBtn.disabled = true;
+    calculateBtn.disabled = true;
+    otpSection.style.display = 'none';
+
     const formData = new FormData(form);
-
     try {
-      const response = await fetch('/calculate', {
+      const res = await fetch('/check_login', {
         method: 'POST',
         body: formData,
-        signal: controller.signal 
+      });
+      const data = await res.json();
+
+      if (data.status === 'success') {
+        appendOutput('Login successful!\n');
+        calculateBtn.disabled = false;
+      } else if (data.status === 'otp_required') {
+        appendOutput('OTP required. Please enter OTP.\n');
+        otpSection.style.display = 'block';
+        calculateBtn.disabled = false; // Allow calculate after OTP input
+      } else {
+        appendOutput(`Login failed: ${data.message || 'Unknown error'}\n`);
+        loginBtn.disabled = false;
+      }
+    } catch (err) {
+      appendOutput(`Error during login: ${err.message}\n`);
+      loginBtn.disabled = false;
+    }
+  });
+
+  // Calculate button submit (form submit)
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    output.textContent = '';
+    calculateBtn.disabled = true;
+    loginBtn.disabled = true;
+    stopBtn.disabled = false;
+    reading = true;
+
+    // Abort controller to stop fetch if needed
+    controller = new AbortController();
+
+    try {
+      const formData = new FormData(form);
+      const res = await fetch('/calculate', {
+        method: 'POST',
+        body: formData,
+        signal: controller.signal,
       });
 
-      if (!response.body) {
-        output.textContent = 'No response body!';
-        clearBtn.disabled = false;
+      if (!res.ok) {
+        appendOutput(`Server error: ${res.statusText}\n`);
+        resetUI();
         return;
       }
 
-      const reader = response.body.getReader();
+      const reader = res.body.getReader();
       const decoder = new TextDecoder();
-      let done = false;
-
-      while (!done) {
-        const { value, done: doneReading } = await reader.read();
-        done = doneReading;
-        const chunk = decoder.decode(value);
-        output.textContent += chunk;
-        output.scrollTop = output.scrollHeight;
+      while (reading) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        appendOutput(chunk);
       }
-        clearBtn.disabled = false;
+
     } catch (err) {
       if (err.name === 'AbortError') {
-        output.textContent += '\nTest Abort.';
+        appendOutput('\nCalculation stopped by user.\n');
       } else {
-        output.textContent += '\nError: ' + err.message;
+        appendOutput(`\nError during calculation: ${err.message}\n`);
       }
-        clearBtn.disabled = false;
+    } finally {
+      resetUI();
     }
   });
 
-  // Stop button handler
-  stopBtn.addEventListener('click', function () {
+  // Stop button click
+  stopBtn.addEventListener('click', () => {
     if (controller) {
       controller.abort();
-      clearBtn.disabled = false;
     }
+    stopBtn.disabled = true;
   });
 
-  // Clear Button
-
-   clearBtn.addEventListener('click', function() {
-    form.reset();
+  // Clear button click
+  clearBtn.addEventListener('click', () => {
     output.textContent = '';
+    resetUI();
   });
-
 });

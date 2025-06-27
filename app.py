@@ -4,6 +4,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from urllib.parse import urlparse
 import time
 
 app = Flask(__name__)
@@ -12,7 +13,40 @@ app = Flask(__name__)
 def index():
     return render_template('index.html')
 
-def selenium_generator_match_history(url, username, password, game_filter):
+def get_base_url(full_url):
+    parsed = urlparse(full_url)
+    return f"{parsed.scheme}://{parsed.netloc}"
+
+@app.route('/check_login', methods=['POST'])
+def check_login():
+    url = request.form['url']
+    username = request.form['username']
+    password = request.form['password']
+
+    options = webdriver.ChromeOptions()
+    options.add_argument('--headless')
+    options.add_argument('--no-sandbox')
+    driver = webdriver.Chrome(options=options)
+    wait = WebDriverWait(driver, 10)
+
+    try:
+        driver.get(url)
+        wait.until(EC.presence_of_element_located((By.ID, "exampleInputEmail1"))).send_keys(username)
+        driver.find_element(By.ID, "txtPassword").send_keys(password + Keys.RETURN)
+        time.sleep(2)
+
+        if "otp" in driver.page_source.lower() or driver.find_elements(By.ID, '//*[@id="otp"]'): 
+            driver.quit()
+            return jsonify({"status": "otp_required"})
+
+        driver.quit()
+        return jsonify({"status": "success"})
+
+    except Exception as e:
+        driver.quit()
+        return jsonify({"status": "error", "message": str(e)})
+    
+def selenium_generator_match_history(url, username, password, game_filter, otp=None):
     options = webdriver.ChromeOptions()
     options.add_experimental_option("detach", True)
     options.add_argument("--headless")
@@ -28,15 +62,37 @@ def selenium_generator_match_history(url, username, password, game_filter):
     wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="exampleInputEmail1"]')))
     driver.find_element(By.XPATH, '//*[@id="exampleInputEmail1"]').send_keys(username)
     driver.find_element(By.XPATH, '//*[@id="txtPassword"]').send_keys(password + Keys.RETURN)
-    time.sleep(2)
+    time.sleep(2)  
 
-    yield "Navigating to match history page...\n"
-    driver.get('https://client.lootrix.utwebapps.com/match_history')
-    time.sleep(1)
+    if "otp" in driver.page_source.lower() or len(driver.find_elements(By.ID, "otp")) > 0:
+        if otp:
+            yield "OTP required. Submitting OTP from form...\n"
+            otp_input = wait.until(EC.presence_of_element_located((By.ID, "otp")))
+            otp_input.send_keys(otp)
+            
+            try:
+                submit_btn = driver.find_element(By.ID, "submitOTP")  
+                submit_btn.click()
+            except:
+                otp_input.send_keys(Keys.RETURN)
+            
+            time.sleep(3)
+        else:
+            yield "OTP required but not provided. Please enter OTP in the form.\n"
+            driver.quit()
+            return
 
+    yield "OTP verified, continuing to match history...\n"
+
+    base_url = get_base_url(url)
+    driver.get(base_url + '/match_history')
+  
+    wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="gameName_search"]')))
+    print("Found match_history Drop Down")
     dropdown_input = driver.find_element(By.XPATH, '//*[@id="gameName_search"]')
+    time.sleep(30)
     dropdown_input.click()
-    time.sleep(1)
+    time.sleep(5)
 
     old_rows = driver.find_elements(By.CSS_SELECTOR, 'table#transactions_table tbody tr')
 
@@ -105,8 +161,7 @@ def selenium_generator_match_history(url, username, password, game_filter):
     driver.quit()
     yield f"\nTotal revenue across all pages: ₹{total_revenue:,.2f}\n"
 
-
-def selenium_generator_transactions(url, username, password, game_filter):
+def selenium_generator_transactions(url, username, password, game_filter, otp=None):
     options = webdriver.ChromeOptions()
     options.add_experimental_option("detach", True)
     options.add_argument("--headless")
@@ -124,8 +179,28 @@ def selenium_generator_transactions(url, username, password, game_filter):
     driver.find_element(By.XPATH, '//*[@id="txtPassword"]').send_keys(password + Keys.RETURN)
     time.sleep(2)
 
+    if "otp" in driver.page_source.lower() or len(driver.find_elements(By.ID, "otp")) > 0:
+        if otp:
+            yield "OTP required. Submitting OTP from form...\n"
+            otp_input = wait.until(EC.presence_of_element_located((By.ID, "otp")))
+            otp_input.send_keys(otp)
+
+            try:
+                submit_btn = driver.find_element(By.ID, "submitOTP")  # Adjust if needed
+                submit_btn.click()
+            except:
+                otp_input.send_keys(Keys.RETURN)
+
+            time.sleep(3)
+        else:
+            yield "OTP required but not provided. Please enter OTP in the form.\n"
+            driver.quit()
+            return
+
+    base_url = get_base_url(url)
+
     yield "Navigating to transactions page...\n"
-    driver.get('https://client.lootrix.utwebapps.com/transactions')
+    driver.get(base_url + '/transactions')
     time.sleep(1)
 
     dropdown_input = driver.find_element(By.XPATH, '//*[@id="game_name"]')
@@ -209,12 +284,13 @@ def calculate():
     password = request.form['password']
     game_filter = request.form['game_filter']
     page_type = request.form['page_type']
+    otp = request.form.get('otp', None)
 
     if page_type == 'match_history':
-        return Response(selenium_generator_match_history(url, username, password, game_filter),
+        return Response(selenium_generator_match_history(url, username, password, game_filter, otp),
                         mimetype='text/plain')
     elif page_type == 'transactions':
-        return Response(selenium_generator_transactions(url, username, password, game_filter),
+        return Response(selenium_generator_transactions(url, username, password, game_filter, otp),
                         mimetype='text/plain')
     else:
         return "Invalid page type selected", 400
@@ -239,10 +315,13 @@ def get_games():
         driver.find_element(By.ID, "txtPassword").send_keys(password + Keys.RETURN)
         time.sleep(2)
 
+        base_url = get_base_url(url)
+
         if page_type == "match_history":
-            driver.get("https://client.lootrix.utwebapps.com/match_history")
+            driver.get(base_url + "/match_history")
         else:
-            driver.get("https://client.lootrix.utwebapps.com/transactions")
+            driver.get(base_url + "/transactions")
+
 
         wait.until(EC.presence_of_element_located((By.ID, "gameName_search")))
         dropdown = driver.find_element(By.ID, "gameName_search")

@@ -43,46 +43,53 @@
         <h3 class="text-center text-primary mb-4">Revenue Calculator For Turbo & Live Games</h3>
 
         <form id="revenueForm">
-          <div class="mb-3">
-            <label for="url" class="form-label">Login URL</label>
-            <input type="url" class="form-control" id="url" name="url" placeholder="https://client.lootrix.utwebapps.com" required>
-          </div>
+  <div class="mb-3">
+    <label for="url" class="form-label">Login URL</label>
+    <input type="url" class="form-control" id="url" name="url" placeholder="https://client.lootrix.utwebapps.com" required>
+  </div>
 
-          <div class="row g-3">
-            <div class="col-md-6">
-              <label for="username" class="form-label">Username</label>
-              <input type="text" class="form-control" id="username" name="username" placeholder="e.g. rumblebets" required>
-            </div>
-            <div class="col-md-6">
-              <label for="password" class="form-label">Password</label>
-              <input type="password" class="form-control" id="password" name="password" placeholder="Your password" required>
-            </div>
-          </div>
+  <div class="row g-3">
+    <div class="col-md-6">
+      <label for="username" class="form-label">Username</label>
+      <input type="text" class="form-control" id="username" name="username" required>
+    </div>
+    <div class="col-md-6">
+      <label for="password" class="form-label">Password</label>
+      <input type="password" class="form-control" id="password" name="password" required>
+    </div>
+  </div>
 
-          <div class="row g-3 mt-1">
-            <div class="col-md-6">
-              <label for="game_filter" class="form-label">Game Filter</label>
-              <input type="text" class="form-control" id="game_filter" name="game_filter" placeholder="e.g. hilo" required>
-            </div>
-            <div class="col-md-6">
-              <label for="page_type" class="form-label">Select Page</label>
-              <select class="form-select" id="page_type" name="page_type" required>
-                <option value="match_history" selected>Match History</option>
-                <option value="transactions">Transactions</option>
-              </select>
-            </div>
-          </div>
+  <div class="row g-3 mt-1">
+    <div class="col-md-6">
+      <label for="game_filter" class="form-label">Game Filter</label>
+      <input type="text" class="form-control" id="game_filter" name="game_filter" required>
+    </div>
+    <div class="col-md-6">
+      <label for="page_type" class="form-label">Select Page</label>
+      <select class="form-select" id="page_type" name="page_type" required>
+        <option value="match_history" selected>Match History</option>
+        <option value="transactions">Transactions</option>
+      </select>
+    </div>
+  </div>
 
-          <div class="d-flex justify-content-end gap-3 mt-4">
-            <button type="submit" class="btn btn-primary">Calculate</button>
-            <button type="button" class="btn btn-outline-danger" id="stopBtn">Stop</button>
-            <button type="button" class="btn btn-secondary" id="clearBtn">Clear</button>
-          </div>
+  <div class="mb-3 mt-3" id="otpSection" style="display: none;">
+  <label for="otp" class="form-label">Enter OTP</label>
+  <input type="text" class="form-control" id="otp" name="otp">
+  </div>
 
-        </form>
 
-        <h5 class="mt-5">Output</h5>
-        <pre id="output" readonly></pre>
+  <div class="d-flex justify-content-end gap-3 mt-4">
+    <button type="button" class="btn btn-info" id="loginBtn">Login</button>
+    <button type="submit" class="btn btn-primary" id="calculateBtn" disabled>Calculate</button>
+    <button type="button" class="btn btn-outline-danger" id="stopBtn">Stop</button>
+    <button type="button" class="btn btn-secondary" id="clearBtn">Clear</button>
+  </div>
+</form>
+
+<h5 class="mt-5">Output</h5>
+<pre id="output" readonly></pre>
+
       </div>
     </div>
   </div>

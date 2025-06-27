@@ -4,11 +4,15 @@ document.addEventListener('DOMContentLoaded', function () {
   const pageType = document.getElementById('page_type');
   const output = document.getElementById('output');
   const stopBtn = document.getElementById('stopBtn'); 
+   const clearBtn = document.getElementById('clearBtn');
 
   let controller = null; 
 
+  clearBtn.disabled = false;
+
   form.addEventListener('submit', async function (e) {
     e.preventDefault();
+    clearBtn.disabled = true;
     output.textContent = 'Calculating...\n';
 
     controller = new AbortController();
@@ -23,6 +27,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
       if (!response.body) {
         output.textContent = 'No response body!';
+        clearBtn.disabled = false;
         return;
       }
 
@@ -37,12 +42,14 @@ document.addEventListener('DOMContentLoaded', function () {
         output.textContent += chunk;
         output.scrollTop = output.scrollHeight;
       }
+        clearBtn.disabled = false;
     } catch (err) {
       if (err.name === 'AbortError') {
         output.textContent += '\nTest Abort.';
       } else {
         output.textContent += '\nError: ' + err.message;
       }
+        clearBtn.disabled = false;
     }
   });
 
@@ -50,46 +57,15 @@ document.addEventListener('DOMContentLoaded', function () {
   stopBtn.addEventListener('click', function () {
     if (controller) {
       controller.abort();
+      clearBtn.disabled = false;
     }
   });
 
-  // Game list fetching
-  async function fetchGames() {
-    const url = document.getElementById('url').value;
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
-    const page_type = pageType.value;
+  // Clear Button
 
-    if (!url || !username || !password) return;
+   clearBtn.addEventListener('click', function() {
+    form.reset();
+    output.textContent = '';
+  });
 
-    gameFilter.innerHTML = `<option>Loading...</option>`;
-
-    try {
-      const res = await fetch('/get_games', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url, username, password, page_type })
-      });
-      const data = await res.json();
-
-      if (data.games) {
-        gameFilter.innerHTML = '';
-        data.games.forEach(game => {
-          const option = document.createElement('option');
-          option.value = game;
-          option.textContent = game;
-          gameFilter.appendChild(option);
-        });
-      } else {
-        gameFilter.innerHTML = `<option>Error loading games</option>`;
-      }
-    } catch (err) {
-      gameFilter.innerHTML = `<option>Error fetching</option>`;
-    }
-  }
-
-  document.getElementById('url').addEventListener('blur', fetchGames);
-  document.getElementById('username').addEventListener('blur', fetchGames);
-  document.getElementById('password').addEventListener('blur', fetchGames);
-  pageType.addEventListener('change', fetchGames);
 });

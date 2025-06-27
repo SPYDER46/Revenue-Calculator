@@ -3,11 +3,10 @@ document.addEventListener('DOMContentLoaded', function () {
   const gameFilter = document.getElementById('game_filter');
   const pageType = document.getElementById('page_type');
   const output = document.getElementById('output');
-  const stopBtn = document.getElementById('stopBtn'); // Get Stop button
+  const stopBtn = document.getElementById('stopBtn'); 
 
-  let controller = null; // Global controller reference
+  let controller = null; 
 
-  // Handle form submission
   form.addEventListener('submit', async function (e) {
     e.preventDefault();
     output.textContent = 'Calculating...\n';
@@ -19,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const response = await fetch('/calculate', {
         method: 'POST',
         body: formData,
-        signal: controller.signal // ✅ Attach the abort signal
+        signal: controller.signal 
       });
 
       if (!response.body) {
@@ -40,7 +39,7 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     } catch (err) {
       if (err.name === 'AbortError') {
-        output.textContent += '\n❌ Fetch stopped by user.';
+        output.textContent += '\nTest Abort.';
       } else {
         output.textContent += '\nError: ' + err.message;
       }

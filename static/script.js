@@ -22,7 +22,6 @@ document.addEventListener('DOMContentLoaded', () => {
     calculateBtn.disabled = true;
     loginBtn.disabled = false;
     stopBtn.disabled = true;
-    output.textContent = '';
     reading = false;
   }
 
@@ -102,6 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
         appendOutput(`\nError during calculation: ${err.message}\n`);
       }
     } finally {
+      controller = null;
       resetUI();
     }
   });
@@ -110,6 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
   stopBtn.addEventListener('click', () => {
   if (controller) {
     controller.abort();
+    controller = null;
   }
   stopBtn.disabled = true;
   reading = false;
@@ -117,12 +118,12 @@ document.addEventListener('DOMContentLoaded', () => {
   loginBtn.disabled = false;
 });
 
-  // Clear button click
-  clearBtn.addEventListener('click', () => {
+clearBtn.addEventListener('click', () => {
   output.textContent = '';
   reading = false;
   if (controller) {
     controller.abort();
+    controller = null;
   }
   resetUI();
 });

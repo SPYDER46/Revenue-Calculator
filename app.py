@@ -35,7 +35,7 @@ def check_login():
         driver.find_element(By.ID, "txtPassword").send_keys(password + Keys.RETURN)
         time.sleep(2)
 
-        if "otp" in driver.page_source.lower() or driver.find_elements(By.ID, '//*[@id="otp"]'): 
+        if "otp" in driver.page_source.lower() or driver.find_elements(By.ID, "otp"): 
             driver.quit()
             return jsonify({"status": "otp_required"})
 
@@ -68,7 +68,10 @@ def selenium_generator_match_history(url, username, password, game_filter, otp=N
         if otp:
             yield "OTP required. Submitting OTP from form...\n"
             otp_input = wait.until(EC.presence_of_element_located((By.ID, "otp")))
-            otp_input.send_keys(otp)
+            if otp_input.is_displayed() and otp_input.is_enabled():
+                otp_input.send_keys(otp)
+            else:
+                yield "OTP input not interactable, skipping OTP submission.\n"
             
             try:
                 submit_btn = driver.find_element(By.ID, "submitOTP")  
@@ -183,7 +186,10 @@ def selenium_generator_transactions(url, username, password, game_filter, otp=No
         if otp:
             yield "OTP required. Submitting OTP from form...\n"
             otp_input = wait.until(EC.presence_of_element_located((By.ID, "otp")))
-            otp_input.send_keys(otp)
+            if otp_input.is_displayed() and otp_input.is_enabled():
+                otp_input.send_keys(otp)
+            else:
+                yield "OTP input not interactable, skipping OTP submission.\n"
 
             try:
                 submit_btn = driver.find_element(By.ID, "submitOTP")  # Adjust if needed
@@ -292,6 +298,7 @@ def calculate():
     elif page_type == 'transactions':
         return Response(selenium_generator_transactions(url, username, password, game_filter, otp),
                         mimetype='text/plain')
+
     else:
         return "Invalid page type selected", 400
 

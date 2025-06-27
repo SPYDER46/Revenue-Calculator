@@ -108,15 +108,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Stop button click
   stopBtn.addEventListener('click', () => {
-    if (controller) {
-      controller.abort();
-    }
-    stopBtn.disabled = true;
-  });
+  if (controller) {
+    controller.abort();
+  }
+  stopBtn.disabled = true;
+  reading = false;
+  calculateBtn.disabled = false;
+  loginBtn.disabled = false;
+});
 
   // Clear button click
   clearBtn.addEventListener('click', () => {
-    output.textContent = '';
-    resetUI();
-  });
+  output.textContent = '';
+  reading = false;
+  if (controller) {
+    controller.abort();
+  }
+  resetUI();
+});
 });

@@ -25,7 +25,7 @@ def check_login():
     password = request.form['password']
 
     options = webdriver.ChromeOptions()
-    options.add_argument('--headless')
+    options.add_argument('--headless=new')
     options.add_argument('--no-sandbox')
     driver = webdriver.Chrome(options=options)
     wait = WebDriverWait(driver, 10)
@@ -49,6 +49,8 @@ def check_login():
     
 def selenium_generator_match_history(url, username, password, game_filter, otp=None):
     options = webdriver.ChromeOptions()
+    options.add_argument('--headless=new')
+    options.binary_location = "/usr/bin/chromium"
     options.add_experimental_option("detach", True)
     options.add_argument("--headless")
     options.add_argument("--no-sandbox")
@@ -170,6 +172,7 @@ def selenium_generator_match_history(url, username, password, game_filter, otp=N
 def selenium_generator_transactions(url, username, password, game_filter, otp=None):
     options = webdriver.ChromeOptions()
     options.add_experimental_option("detach", True)
+    options.add_argument('--headless=new')
     options.add_argument("--headless")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
@@ -316,7 +319,7 @@ def get_games():
     page_type = request.json['page_type']
 
     options = webdriver.ChromeOptions()
-    options.add_argument('--headless')
+    options.add_argument('--headless=new') 
     driver = webdriver.Chrome(options=options)
     wait = WebDriverWait(driver, 15)
 

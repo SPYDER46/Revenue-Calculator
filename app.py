@@ -23,7 +23,6 @@ def check_login():
     url = request.form['url']
     username = request.form['username']
     password = request.form['password']
-
     options = webdriver.ChromeOptions()
     options.add_argument('--headless=new')
     options.add_argument('--no-sandbox')

@@ -43,12 +43,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
 
       if (data.status === 'success') {
-        appendOutput('Login successful!\n');
+        appendOutput('Login successful, now click calculate to check Revenue..!\n');
         calculateBtn.disabled = false;
       } else if (data.status === 'otp_required') {
         appendOutput('OTP required. Please enter OTP.\n');
         otpSection.style.display = 'block';
-        calculateBtn.disabled = false; // Allow calculate after OTP input
+        calculateBtn.disabled = false; 
       } else {
         appendOutput(`Login failed: ${data.message || 'Unknown error'}\n`);
         loginBtn.disabled = false;
@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     } catch (err) {
       if (err.name === 'AbortError') {
-        appendOutput('\nCalculation stopped by user.\n');
+        appendOutput('\nTest Abort.\n');
       } else {
         appendOutput(`\nError during calculation: ${err.message}\n`);
       }

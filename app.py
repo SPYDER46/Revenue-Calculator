@@ -24,7 +24,7 @@ def check_login():
     username = request.form['username']
     password = request.form['password']
     options = webdriver.ChromeOptions()
-    options.add_argument('--headless=new')
+    options.add_argument('--headless')
     options.add_argument('--no-sandbox')
     driver = webdriver.Chrome(options=options)
     wait = WebDriverWait(driver, 10)
@@ -48,7 +48,7 @@ def check_login():
     
 def selenium_generator_match_history(url, username, password, game_filter, otp=None):
     options = webdriver.ChromeOptions()
-    options.add_argument('--headless=new')
+    options.add_argument('--headless')
     options.binary_location = "/usr/bin/chromium"
     options.add_experimental_option("detach", True)
     options.add_argument("--headless")

@@ -5,6 +5,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from urllib.parse import urlparse
+from flask import jsonify
 import time
 import os
 
@@ -309,8 +310,6 @@ def calculate():
 
     else:
         return "Invalid page type selected", 400
-
-from flask import jsonify
 
 @app.route('/get_games', methods=['POST'])
 def get_games():

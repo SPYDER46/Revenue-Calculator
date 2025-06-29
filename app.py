@@ -93,9 +93,9 @@ def selenium_generator_match_history(url, username, password, game_filter, otp=N
         yield "OTP verified, continuing to match history...\n"    
 
     base_url = get_base_url(url)
-    yield "Match History page...\n"
+    yield "Navigating Match History page...\n"
     driver.get(base_url + '/match_history')
-    yield "In Match History Page\n"
+    yield "In Match History Page...\n"
   
     wait.until(EC.presence_of_element_located((By.XPATH, '//*[@id="gameName_search"]')))
     print("Found match_history Drop Down")
@@ -192,7 +192,7 @@ def selenium_generator_transactions(url, username, password, game_filter, otp=No
 
     if "otp" in driver.page_source.lower() or len(driver.find_elements(By.ID, "otp")) > 0:
         if otp:
-            yield "OTP required. Submitting OTP from form...\n"
+            yield "OTP required. Submitting OTP...\n"
             otp_input = wait.until(EC.presence_of_element_located((By.ID, "otp")))
             if otp_input.is_displayed() and otp_input.is_enabled():
                 otp_input.send_keys(otp)

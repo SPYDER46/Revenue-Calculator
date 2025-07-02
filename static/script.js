@@ -33,32 +33,45 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function resetUI() {
-  if (!otpSection.classList.contains('force-show')) {
-    otpSection.style.display = 'none';
-  }
+  // Only hide OTP section if it's not flagged to stay visible
+  if (otpSection.classList.contains('force-show')) {
+      otpSection.style.display = 'block';
+    } else {
+      otpSection.style.display = 'none';
+    }
+
 
   setFormDisabled(false);
   stopBtn.disabled = true;
   clearBtn.disabled = false;
-  gameType.disabled = pageType.value !== 'transaction';
+  gameType.disabled = pageType.value === 'match_history';
   reading = false;
 
-  calculateBtn.disabled = !isLoggedIn;
-  loginBtn.disabled = isLoggedIn;
-  logoutBtn.disabled = !isLoggedIn;
+  // If OTP is required and visible, enable loginBtn to allow submitting OTP
+  if (otpSection.classList.contains('force-show')) {
+    loginBtn.disabled = false;
+  } else {
+    loginBtn.disabled = isLoggedIn;
+  }
 
-  validateForm(); 
+  calculateBtn.disabled = !isLoggedIn;
+  logoutBtn.disabled = !isLoggedIn;
 }
 
   resetUI();
 
-  loginBtn.addEventListener('click', async () => {
+loginBtn.addEventListener('click', async () => {
     output.textContent = 'Checking login...\n';
     loginBtn.disabled = true;
     calculateBtn.disabled = true;
-    otpSection.style.display = 'none';
+   
 
     const formData = new FormData(form);
+    const otpInput = document.getElementById('otp');
+    if (otpSection.style.display === 'block' && otpInput && otpInput.value.trim() !== '') {
+      formData.append('otp', otpInput.value.trim());
+    }
+
     try {
       const res = await fetch('/check_login', {
         method: 'POST',
@@ -69,15 +82,28 @@ document.addEventListener('DOMContentLoaded', () => {
       if (data.status === 'success') {
         appendOutput('Login successful, now click calculate to check Revenue..!\n');
         isLoggedIn = true;
+
+        // Hide and clear OTP field
+        document.getElementById('otp').value = '';
+        otpSection.classList.remove('force-show');
+        otpSection.style.display = 'none';
+
+
         resetUI();
       }
+
     else if (data.status === 'otp_required') {
-    appendOutput('OTP required. Please enter OTP.\n');
-    otpSection.style.display = 'block';
-    otpSection.classList.add('force-show');  // Mark it to stay visible
-    isLoggedIn = true;
-    resetUI(); // Now it won’t hide the OTP field
-  }
+      appendOutput('OTP required. Please enter OTP.\n');
+      
+      // Show and enable OTP input
+      otpSection.classList.add('force-show');
+      otpSection.style.display = 'block';
+      document.getElementById('otp').focus();
+
+
+      isLoggedIn = false;
+      resetUI();
+    }
 
     else {
         appendOutput(`Login failed: ${data.message || 'Unknown error'}\n`);
@@ -89,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  form.addEventListener('submit', async (e) => {
+   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     output.textContent = '';
 
@@ -101,11 +127,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     controller = new AbortController();
 
+    console.log('Sending FormData:');
     for (let [key, value] of formData.entries()) {
     console.log(`${key}: ${value}`);
   }
 
-  
 
     try {
       const res = await fetch('/calculate', {

@@ -26,6 +26,7 @@ def check_login():
     url = request.form['url']
     username = request.form['username']
     password = request.form['password']
+    otp = request.form.get('otp', None)
 
     if username in active_sessions:
         return jsonify({"status": "success"})
@@ -43,8 +44,28 @@ def check_login():
         driver.find_element(By.ID, "txtPassword").send_keys(password + Keys.RETURN)
         time.sleep(2)
 
+        # If OTP is required
         if "otp" in driver.page_source.lower() or driver.find_elements(By.ID, "otp"):
-            return jsonify({"status": "otp_required"})
+            if otp:
+                otp_input = wait.until(EC.presence_of_element_located((By.ID, "otp")))
+                otp_input.send_keys(otp)
+
+                try:
+                    submit_btn = driver.find_element(By.ID, "submitOTP")
+                    submit_btn.click()
+                except:
+                    otp_input.send_keys(Keys.RETURN)
+
+                time.sleep(3)
+
+                # Check again if still asking for OTP (invalid or failed submission)
+                if "otp" in driver.page_source.lower() or driver.find_elements(By.ID, "otp"):
+                    driver.quit()
+                    return jsonify({"status": "otp_required", "message": "Invalid OTP or submission failed"})
+
+            else:
+                driver.quit()
+                return jsonify({"status": "otp_required", "message": "OTP required"})
 
         active_sessions[username] = driver
         return jsonify({"status": "success"})

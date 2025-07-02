@@ -17,9 +17,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Disable game type dropdown if Match History is selected
   pageType.addEventListener('change', () => {
-  gameType.disabled = pageType.value !== 'transaction';
-  validateForm();
-});
+    gameType.disabled = pageType.value === 'match_history';
+  });
 
   function appendOutput(text) {
     output.textContent += text;

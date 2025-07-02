@@ -17,8 +17,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Disable game type dropdown if Match History is selected
   pageType.addEventListener('change', () => {
-    gameType.disabled = pageType.value === 'match_history';
-  });
+  gameType.disabled = pageType.value !== 'transaction';
+  validateForm();
+});
 
   function appendOutput(text) {
     output.textContent += text;
@@ -33,16 +34,21 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function resetUI() {
-  otpSection.style.display = 'none';
+  if (!otpSection.classList.contains('force-show')) {
+    otpSection.style.display = 'none';
+  }
+
   setFormDisabled(false);
   stopBtn.disabled = true;
   clearBtn.disabled = false;
-  gameType.disabled = pageType.value === 'match_history';
+  gameType.disabled = pageType.value !== 'transaction';
   reading = false;
 
   calculateBtn.disabled = !isLoggedIn;
   loginBtn.disabled = isLoggedIn;
   logoutBtn.disabled = !isLoggedIn;
+
+  validateForm(); 
 }
 
   resetUI();
@@ -67,11 +73,13 @@ document.addEventListener('DOMContentLoaded', () => {
         resetUI();
       }
     else if (data.status === 'otp_required') {
-      appendOutput('OTP required. Please enter OTP.\n');
-      otpSection.style.display = 'block';
-      isLoggedIn = true;
-      resetUI();
-    }
+    appendOutput('OTP required. Please enter OTP.\n');
+    otpSection.style.display = 'block';
+    otpSection.classList.add('force-show');  // Mark it to stay visible
+    isLoggedIn = true;
+    resetUI(); // Now it won’t hide the OTP field
+  }
+
     else {
         appendOutput(`Login failed: ${data.message || 'Unknown error'}\n`);
         loginBtn.disabled = false;
@@ -98,6 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log(`${key}: ${value}`);
   }
 
+  
 
     try {
       const res = await fetch('/calculate', {
@@ -151,6 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
       controller.abort();
       controller = null;
     }
+    otpSection.classList.remove('force-show');
     resetUI();
   });
 });
@@ -168,9 +178,11 @@ document.getElementById("logoutBtn").addEventListener("click", async () => {
   const result = await res.json();
   if (result.status === "logged_out") {
   alert("Logged out successfully.");
-  isLoggedIn = false; 
-  location.reload();  
+  isLoggedIn = false;
+  otpSection.classList.remove('force-show');
+  location.reload();
 }
+
  else {
     alert("No active session to logout.");
   }

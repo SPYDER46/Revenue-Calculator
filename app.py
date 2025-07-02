@@ -64,7 +64,7 @@ def logout():
     
 def selenium_generator_match_history(url, username, password, game_filter, otp=None, driver=None):
     options = webdriver.ChromeOptions()
-    options.binary_location = "/usr/bin/chromium"
+    # options.binary_location = "/usr/bin/chromium"
     options.add_argument('--headless')
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
@@ -186,7 +186,7 @@ def selenium_generator_match_history(url, username, password, game_filter, otp=N
 
 def selenium_generator_transactions_multiplayer(url, username, password, game_filter, otp=None, driver=None):
     options = webdriver.ChromeOptions()
-    options.binary_location = "/usr/bin/chromium"
+    # options.binary_location = "/usr/bin/chromium"
     options.add_argument('--headless')
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
@@ -358,7 +358,7 @@ def selenium_generator_transactions_multiplayer(url, username, password, game_fi
 
 def selenium_generator_transactions_singleplayer(url, username, password, game_filter, otp=None, driver=None):
     options = webdriver.ChromeOptions()
-    options.binary_location = "/usr/bin/chromium"
+    # options.binary_location = "/usr/bin/chromium"
     options.add_argument('--headless')
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')
@@ -513,7 +513,7 @@ def get_games():
     page_type = request.json['page_type']
 
     options = webdriver.ChromeOptions()
-    options.binary_location = "/usr/bin/chromium"
+    # options.binary_location = "/usr/bin/chromium"
     options.add_argument('--headless')
     options.add_argument('--no-sandbox')
     options.add_argument('--disable-dev-shm-usage')

@@ -6,28 +6,47 @@ document.addEventListener('DOMContentLoaded', () => {
   const clearBtn = document.getElementById('clearBtn');
   const otpSection = document.getElementById('otpSection');
   const output = document.getElementById('output');
+  const pageType = document.getElementById('page_type');
+  const gameType = document.getElementById('game_type');
+  const logoutBtn = document.getElementById('logoutBtn');
+  logoutBtn.disabled = true;
 
-  let controller = null;  // For aborting fetch
+  let controller = null;
   let reading = false;
+  let isLoggedIn = false;
 
-  // Helper: append text to output pre with auto scroll
+  // Disable game type dropdown if Match History is selected
+  pageType.addEventListener('change', () => {
+    gameType.disabled = pageType.value === 'match_history';
+  });
+
   function appendOutput(text) {
     output.textContent += text;
     output.scrollTop = output.scrollHeight;
   }
 
-  // Reset UI state
-  function resetUI() {
-    otpSection.style.display = 'none';
-    calculateBtn.disabled = true;
-    loginBtn.disabled = false;
-    stopBtn.disabled = true;
-    reading = false;
+  function setFormDisabled(state) {
+    const elements = form.querySelectorAll('input, select, button');
+    elements.forEach(el => {
+      if (el !== stopBtn) el.disabled = state;
+    });
   }
+
+  function resetUI() {
+  otpSection.style.display = 'none';
+  setFormDisabled(false);
+  stopBtn.disabled = true;
+  clearBtn.disabled = false;
+  gameType.disabled = pageType.value === 'match_history';
+  reading = false;
+
+  calculateBtn.disabled = !isLoggedIn;
+  loginBtn.disabled = isLoggedIn;
+  logoutBtn.disabled = !isLoggedIn;
+}
 
   resetUI();
 
-  // Login button click
   loginBtn.addEventListener('click', async () => {
     output.textContent = 'Checking login...\n';
     loginBtn.disabled = true;
@@ -44,12 +63,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (data.status === 'success') {
         appendOutput('Login successful, now click calculate to check Revenue..!\n');
-        calculateBtn.disabled = false;
-      } else if (data.status === 'otp_required') {
-        appendOutput('OTP required. Please enter OTP.\n');
-        otpSection.style.display = 'block';
-        calculateBtn.disabled = false; 
-      } else {
+        isLoggedIn = true;
+        resetUI();
+      }
+    else if (data.status === 'otp_required') {
+      appendOutput('OTP required. Please enter OTP.\n');
+      otpSection.style.display = 'block';
+      isLoggedIn = true;
+      resetUI();
+    }
+    else {
         appendOutput(`Login failed: ${data.message || 'Unknown error'}\n`);
         loginBtn.disabled = false;
       }
@@ -59,20 +82,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Calculate button submit (form submit)
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     output.textContent = '';
-    calculateBtn.disabled = true;
-    loginBtn.disabled = true;
+
+    const formData = new FormData(form); 
+    setFormDisabled(true); 
     stopBtn.disabled = false;
+    logoutBtn.disabled = true; 
     reading = true;
 
-    // Abort controller to stop fetch if needed
     controller = new AbortController();
 
+    for (let [key, value] of formData.entries()) {
+    console.log(`${key}: ${value}`);
+  }
+
+
     try {
-      const formData = new FormData(form);
       const res = await fetch('/calculate', {
         method: 'POST',
         body: formData,
@@ -106,25 +133,45 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Stop button click
   stopBtn.addEventListener('click', () => {
-  if (controller) {
-    controller.abort();
-    controller = null;
-  }
-  stopBtn.disabled = true;
-  reading = false;
-  calculateBtn.disabled = false;
-  loginBtn.disabled = false;
+    if (controller) {
+      controller.abort();
+      controller = null;
+    }
+    stopBtn.disabled = true;
+    reading = false;
+    calculateBtn.disabled = false;
+    loginBtn.disabled = !isLoggedIn;
+  });
+
+  clearBtn.addEventListener('click', () => {
+    output.textContent = '';
+    reading = false;
+    if (controller) {
+      controller.abort();
+      controller = null;
+    }
+    resetUI();
+  });
 });
 
-clearBtn.addEventListener('click', () => {
-  output.textContent = '';
-  reading = false;
-  if (controller) {
-    controller.abort();
-    controller = null;
+document.getElementById("logoutBtn").addEventListener("click", async () => {
+  const username = document.getElementById("username").value;
+  const formData = new FormData();
+  formData.append("username", username);
+
+  const res = await fetch("/logout", {
+    method: "POST",
+    body: formData,
+  });
+
+  const result = await res.json();
+  if (result.status === "logged_out") {
+  alert("Logged out successfully.");
+  isLoggedIn = false; 
+  location.reload();  
+}
+ else {
+    alert("No active session to logout.");
   }
-  resetUI();
-});
 });

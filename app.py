@@ -8,6 +8,9 @@ from urllib.parse import urlparse
 from flask import jsonify
 import time
 import os
+from dotenv import load_dotenv
+load_dotenv()
+
 
 app = Flask(__name__)
 

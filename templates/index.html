@@ -71,18 +71,24 @@
 
       <form id="revenueForm">
         <div class="mb-3">
-          <label for="url" class="form-label">Login URL</label>
-          <input type="url" class="form-control" id="url" name="url" placeholder="https://client.lootrix.utwebapps.com" required />
-        </div>
+            <label for="url" class="form-label">Login URL</label>
+            <select class="form-select" id="url" name="url" required>
+              <option value="">-- Select Environment --</option>
+              <option value="https://testing.client.lootrix.utwebapps.com/">Testing </option>
+              <option value="https://client.lootrix.utwebapps.com/">External </option>
+              <option value="https://dev.client.lootrix.utwebapps.com/">Dev </option>
+            </select>
+          </div>
+
 
         <div class="row g-3">
           <div class="col-md-6">
             <label for="username" class="form-label">Username</label>
-            <input type="text" class="form-control" id="username" name="username" placeholder="rumblebets" required />
+            <input type="text" class="form-control" id="username" name="username" value="rumblebets" readonly  />
           </div>
           <div class="col-md-6">
             <label for="password" class="form-label">Password</label>
-            <input type="password" class="form-control" id="password" name="password" placeholder="••••123" required />
+            <input type="password" class="form-control" id="password" name="password" value="rumble123" readonly  />
           </div>
         </div>
 

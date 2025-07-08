@@ -24,8 +24,8 @@ def get_base_url(full_url):
 @app.route('/check_login', methods=['POST'])
 def check_login():
     url = request.form['url']
-    username = request.form['username']
-    password = request.form['password']
+    username = "rumblebets"
+    password = "rumble123"
     otp = request.form.get('otp', None)
 
     if username in active_sessions:
@@ -500,8 +500,8 @@ def selenium_generator_transactions_singleplayer(url, username, password, game_f
 @app.route('/calculate', methods=['POST'])
 def calculate():
     url = request.form['url']
-    username = request.form['username']
-    password = request.form['password']
+    username = "rumblebets"
+    password = "rumble123"
     game_filter = request.form['game_filter']
     page_type = request.form['page_type']
     otp = request.form.get('otp', None)

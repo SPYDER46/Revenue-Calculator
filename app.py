@@ -31,8 +31,15 @@ def check_login():
     password = "rumble123"
     otp = request.form.get('otp', None)
 
-    if username in active_sessions:
-        return jsonify({"status": "success"})
+    driver = active_sessions.get(username)
+
+    if driver:
+        try:
+            _ = driver.title  
+            return jsonify({"status": "success"})
+        except Exception:
+            driver.quit()
+            del active_sessions[username]
 
     options = webdriver.ChromeOptions()
     options.add_argument('--headless')
@@ -85,6 +92,19 @@ def logout():
         driver.quit()
         return jsonify({"status": "logged_out"})
     return jsonify({"status": "no_active_session"})
+
+@app.route('/session_status', methods=['GET'])
+def session_status():
+    username = request.args.get('username')
+    driver = active_sessions.get(username)
+    if not driver:
+        return jsonify({"status": "no_session"})
+    try:
+        driver.title  
+        return jsonify({"status": "active"})
+    except:
+        return jsonify({"status": "dead"})
+
     
 def selenium_generator_match_history(url, username, password, game_filter, otp=None, driver=None):
     options = webdriver.ChromeOptions()
@@ -578,7 +598,7 @@ def get_games():
 #     app.run(debug=True)
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 8080))
+    port = int(os.environ.get('PORT', 8081))
     app.run(debug=True, host='0.0.0.0', port=port)
 
 
